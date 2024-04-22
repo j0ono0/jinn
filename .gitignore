@@ -1,0 +1,13 @@
+
+# Python
+__pycache__/
+
+# virtual env
+env/
+
+# unofficial test project
+j0ono0.github.io/
+
+# packaging
+*.egg
+*.egg-info/
