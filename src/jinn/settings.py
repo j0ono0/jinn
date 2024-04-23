@@ -1,3 +1,1 @@
-from pathlib import Path
-
-BUILD_PATH = Path("/")
+# Store setttings here for access by various scripts
