@@ -35,7 +35,13 @@ class Generator:
     templates and functions of it in their site configuration file.
     """
 
-    print('"Your wish is my command." --jinn')
+    print(
+        """
+        -----------------------------------------------------------------------------
+                              "Your wish is my command." --jinn                      
+        -----------------------------------------------------------------------------
+        """
+    )
 
     def __init__(self, jinja_environment=None):
         self.jinja_environment = jinja_environment
