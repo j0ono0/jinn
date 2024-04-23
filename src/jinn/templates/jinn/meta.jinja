@@ -1,0 +1,3 @@
+{% for key in ctx %}
+<meta {{ key }}="{{ key }}" content="{{ ctx[key] }}" />
+{% endfor %}

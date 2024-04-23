@@ -1,0 +1,6 @@
+{# A generic hmtl tag #}
+<{{ ctx.tag }} {% for attr in ctx.attributes %} {{ attr }}="{{ ctx.attributes[attr] }}" {% endfor %}>
+    {% if not ctx.tag in _helpers['void_tags'] %}
+    {{ ctx.content }}
+</{{ ctx.tag }}>
+{% endif %}

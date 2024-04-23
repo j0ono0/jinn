@@ -1,0 +1,6 @@
+{#
+Void elements cannot have child elements and have no closing tag
+https://developer.mozilla.org/en-US/docs/Glossary/Void_element
+#}
+
+<{{ ctx.tag }} {% for key, val in ctx.properties.items() %} {{ key }}="{{ val }}" {% endfor %}>

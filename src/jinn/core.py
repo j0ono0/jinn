@@ -33,8 +33,19 @@ class Generator:
 
     def jinja_environment(self, jinja_environment=None):
         if type(jinja_environment) != jinja2.Environment:
-            self.templates = jinja2.Environment(
-                loader=jinja2.FileSystemLoader(settings.TEMPLATE_PATH),
+            self.file_system_templates = jinja2.Environment(
+                loader=jinja2.ChoiceLoader(
+                    [
+                        jinja2.FileSystemLoader(settings.TEMPLATE_PATH),
+                        jinja2.PackageLoader("jinn", "templates"),
+                    ]
+                ),
+                autoescape=jinja2.select_autoescape(),
+                trim_blocks=True,
+                lstrip_blocks=True,
+            )
+            self.package_templates = jinja2.Environment(
+                loader=jinja2.PackageLoader("jinn", "templates"),
                 autoescape=jinja2.select_autoescape(),
                 trim_blocks=True,
                 lstrip_blocks=True,
@@ -43,7 +54,7 @@ class Generator:
             self.templates = jinja_environment
 
     def template(self, name):
-        return self.templates.get_template(name)
+        return self.file_system_templates.get_template(name)
 
     def copy_directories(self, src, dst):
         dst.mkdir(parents=True, exist_ok=True)
