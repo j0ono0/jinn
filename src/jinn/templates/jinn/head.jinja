@@ -1,0 +1,16 @@
+
+{% if ctx.document_title %}
+<title>{{ ctx.document_title }}</title>
+{% endif %}
+{% if ctx.author %}
+<meta author="author" content="{{ ctx.author }}">
+{% endif %}
+{% if ctx.description %}
+<meta description="description" content="{{ ctx.description }}">
+{% endif %}
+{% for href in ctx.stylesheets %}
+<link rel="stylesheet" href="{{ href }}">
+{% endfor %}
+{% for src in ctx.scripts %}
+<script src="{{ href }}"></script?
+{% endfor %}

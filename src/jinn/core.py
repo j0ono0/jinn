@@ -1,10 +1,11 @@
+""" Central file for control of all aspects of package. 
+"""
+
 import os
 import shutil
 import markdown
 import jinja2
 from . import settings
-
-print("jinn imported. your wish is my command")
 
 
 def copy_dir(src, dst):
@@ -21,19 +22,29 @@ def copy_dir(src, dst):
 
 
 def update_settings(settings_dict):
+    """Update application settings via a dict.
+    These settings are used for navigating the source and build file system structures.
+    """
     for key, val in settings_dict.items():
         setattr(settings, key, val)
 
 
 class Generator:
+    """Central class for controlling and assisting with the build process of the site.
+    Note that an instance of this class must exist *before* a user can reference
+    templates and functions of it in their site configuration file.
+    """
+
+    print('"Your wish is my command." --jinn')
 
     def __init__(self, jinja_environment=None):
-        self.templates = None
-        self.jinja_environment(jinja_environment)
+        self.jinja_environment = jinja_environment
 
-    def jinja_environment(self, jinja_environment=None):
-        if type(jinja_environment) != jinja2.Environment:
-            self.file_system_templates = jinja2.Environment(
+        self.init_jinja_environment()
+
+    def init_jinja_environment(self):
+        if not self.jinja_environment:
+            self.jinja_environment = jinja2.Environment(
                 loader=jinja2.ChoiceLoader(
                     [
                         jinja2.FileSystemLoader(settings.TEMPLATE_PATH),
@@ -44,17 +55,9 @@ class Generator:
                 trim_blocks=True,
                 lstrip_blocks=True,
             )
-            self.package_templates = jinja2.Environment(
-                loader=jinja2.PackageLoader("jinn", "templates"),
-                autoescape=jinja2.select_autoescape(),
-                trim_blocks=True,
-                lstrip_blocks=True,
-            )
-        else:
-            self.templates = jinja_environment
 
     def template(self, name):
-        return self.file_system_templates.get_template(name)
+        return self.jinja_environment.get_template(name)
 
     def copy_directories(self, src, dst):
         dst.mkdir(parents=True, exist_ok=True)
