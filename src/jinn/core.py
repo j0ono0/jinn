@@ -1,10 +1,11 @@
 """ Central file for control of all aspects of package. 
 """
 
-import os
-import shutil
-import markdown
 import jinja2
+import markdown
+import os
+from pathlib import Path
+import shutil
 from . import settings
 
 
@@ -21,12 +22,22 @@ def copy_dir(src, dst):
             shutil.copy2(str(s), str(d))
 
 
-def update_settings(settings_dict):
-    """Update application settings via a dict.
-    These settings are used for navigating the source and build file system structures.
+def parse_md_file(path):
+    md = markdown.Markdown(extensions=["meta"])
+    with open(path) as f:
+        html = {"content": md.convert(f.read())}
+        meta = {k: ", ".join(v) for (k, v) in md.Meta.items()}
+        return {**html, **meta}
+
+
+class Pair:
+    """Group template and content as a pair. The Generator renders the tempalte using the context in the final buld process.
+    The purpose of this class is to delay jinja2 find the templates before a template path has been determined.
     """
-    for key, val in settings_dict.items():
-        setattr(settings, key, val)
+
+    def __init__(self, template, context):
+        self.template = template
+        self.context = context
 
 
 class Generator:
@@ -45,16 +56,17 @@ class Generator:
 
     def __init__(self, jinja_environment=None):
         self.jinja_environment = jinja_environment
+        from pathlib import Path
 
         self.init_jinja_environment()
 
     def init_jinja_environment(self):
+        template_path = settings.PROJ_ROOT / settings.TEMPLATE_SOURCE
         if not self.jinja_environment:
             self.jinja_environment = jinja2.Environment(
                 loader=jinja2.ChoiceLoader(
                     [
-                        jinja2.FileSystemLoader(settings.TEMPLATE_PATH),
-                        # jinja2.PackageLoader("site01", "templates"),
+                        jinja2.FileSystemLoader(template_path),
                         jinja2.PackageLoader("jinn", "templates"),
                     ]
                 ),
@@ -76,30 +88,34 @@ class Generator:
             else:
                 shutil.copy2(str(s), str(d))
 
-    def parse_md_file(self, path):
-        # path = settings.CONTENT_PATH / path
-        md = markdown.Markdown(extensions=["meta"])
-        with open(path) as f:
-            html = {"content": md.convert(f.read())}
-            meta = {k: ", ".join(v) for (k, v) in md.Meta.items()}
-            return {**html, **meta}
-
-    def build_static_directories(self):
-        settings.BUILD_PATH.mkdir(parents=True, exist_ok=True)
-        for dirpath, dirs, files in settings.TEMPLATE_PATH.walk():
+    def build_static_directories(self, destination_path=None):
+        """Copy static files from source to build locations.
+        Optional destination_path overrides default behaviour.
+        """
+        destination_path = (
+            destination_path or settings.BUILD_ROOT / settings.STATIC_DESTINATION
+        )
+        template_path = settings.PROJ_ROOT / settings.TEMPLATE_SOURCE
+        for dirpath, dirs, files in template_path.walk():
             s = dirpath / "static"
             if s.is_dir():
-                rel_path = dirpath.relative_to(settings.TEMPLATE_PATH)
-                d = settings.STATIC_PATH / rel_path
+                rel_path = dirpath.relative_to(template_path)
+                d = destination_path / rel_path
                 self.copy_directories(s, d)
 
-    def build_media_directories(self):
-        settings.BUILD_PATH.mkdir(parents=True, exist_ok=True)
-        for dirpath, dirs, files in settings.CONTENT_PATH.walk():
+    def build_media_directories(self, destination_path=None):
+        """Copy media files from source to build locations.
+        Optional destination_path overrides default behaviour.
+        """
+        destination_path = (
+            destination_path or settings.BUILD_ROOT / settings.MEDIA_DESTINATION
+        )
+        content_path = settings.PROJ_ROOT / settings.CONTENT_SOURCE
+        for dirpath, dirs, files in content_path.walk():
             s = dirpath / "media"
             if s.is_dir():
-                rel_path = dirpath.relative_to(settings.CONTENT_PATH)
-                d = settings.MEDIA_PATH / rel_path
+                rel_path = dirpath.relative_to(content_path)
+                d = destination_path / rel_path
                 self.copy_directories(s, d)
 
     def build_page(self, page):
@@ -122,6 +138,19 @@ class Generator:
                 "wbr",
             ]
         }
+        try:
+            build_path = Path(page["build_directory"]) / page["slug"]
+        except KeyError:
+            build_path = settings.BUILD_ROOT / page["slug"]
 
-        with open(settings.BUILD_PATH / page["slug"], "w") as f:
+        if not build_path:
+            raise TypeError(
+                """
+                No destination folder has been set for the output of this page.
+                The page dict needs a 'build_directory' attribute -OR- Set a 
+                default BUILD_ROOT in settings by adding:
+                    setting.BUILD_ROOT = "<absolute path to destination folder>"
+                """
+            )
+        with open(build_path, "w") as f:
             f.write(page["template"].render(page))
