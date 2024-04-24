@@ -30,16 +30,6 @@ def parse_md_file(path):
         return {**html, **meta}
 
 
-class Pair:
-    """Group template and content as a pair. The Generator renders the tempalte using the context in the final buld process.
-    The purpose of this class is to delay jinja2 find the templates before a template path has been determined.
-    """
-
-    def __init__(self, template, context):
-        self.template = template
-        self.context = context
-
-
 class Generator:
     """Central class for controlling and assisting with the build process of the site.
     Note that an instance of this class must exist *before* a user can reference
@@ -61,7 +51,7 @@ class Generator:
         self.init_jinja_environment()
 
     def init_jinja_environment(self):
-        template_path = settings.PROJ_ROOT / settings.TEMPLATE_SOURCE
+        template_path = Path(settings.PROJ_ROOT) / settings.TEMPLATE_SOURCE
         if not self.jinja_environment:
             self.jinja_environment = jinja2.Environment(
                 loader=jinja2.ChoiceLoader(
@@ -93,7 +83,7 @@ class Generator:
         Optional destination_path overrides default behaviour.
         """
         destination_path = (
-            destination_path or settings.BUILD_ROOT / settings.STATIC_DESTINATION
+            destination_path or Path(settings.BUILD_ROOT) / settings.STATIC_DESTINATION
         )
         template_path = settings.PROJ_ROOT / settings.TEMPLATE_SOURCE
         for dirpath, dirs, files in template_path.walk():
@@ -108,7 +98,7 @@ class Generator:
         Optional destination_path overrides default behaviour.
         """
         destination_path = (
-            destination_path or settings.BUILD_ROOT / settings.MEDIA_DESTINATION
+            destination_path or Path(settings.BUILD_ROOT) / settings.MEDIA_DESTINATION
         )
         content_path = settings.PROJ_ROOT / settings.CONTENT_SOURCE
         for dirpath, dirs, files in content_path.walk():
@@ -141,7 +131,7 @@ class Generator:
         try:
             build_path = Path(page["build_directory"]) / page["slug"]
         except KeyError:
-            build_path = settings.BUILD_ROOT / page["slug"]
+            build_path = Path(settings.BUILD_ROOT) / page["slug"]
 
         if not build_path:
             raise TypeError(
