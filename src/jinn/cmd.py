@@ -4,14 +4,15 @@ from jinn import settings
 
 parser = argparse.ArgumentParser(
     description="""Command jinn to generate a static site. 
-        Note: this must be run from the source folder if you have submobules."""
+        Note: This tool is expected to be run from the project source folder."""
 )
 
 parser.add_argument("src", type=str, help="source file to control build process")
 parser.add_argument(
+    "-b",
     "--build",
     type=str,
-    help="destination folder for site to be built into. Omitted the project builds into './build'.",
+    help="Build folder for site to be built into. Omitted the project builds into './build'.",
 )
 
 args = parser.parse_args()
@@ -45,37 +46,19 @@ import os
 
 settings.BUILD_PATH = dst.resolve()
 
-# here = Path(".")
+here = Path(".")
 
-# if here == src.parent:
-#     # in project root
-#     modulepath = src.stem
-# elif src.resolve().is_relative_to(here.resolve()):
-#     # user above above
-#     modulepath = ".".join(src.parent.joinpath(src.stem).as_posix().split("/"))
-# else:
-#     pathup = src.parent.relative_to(Path("."))
-#     upcount = len(pathup.as_posix().split("/"))
-#     modulepath = f'{'.'*upcount}{src.stem}'
+if here == src.parent:
+    # in project root
+    #######################################
+    # This only works from the project root
+    spec = importlib.util.spec_from_file_location(src.stem, src)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[src.stem] = module
+    spec.loader.exec_module(module)
 
-# print(modulepath)
-
-sys.path.append(src.parent.resolve())
-
-
-#######################################
-#######################################
-
-# This only works from the project root
-
-#######################################
-#######################################
-
-spec = importlib.util.spec_from_file_location(src.stem, src)
-module = importlib.util.module_from_spec(spec)
-sys.modules[src.stem] = module
-spec.loader.exec_module(module)
-
-# import from outside user module
-# module = importlib.import_module('site01.site')
-# print(dir(module))
+else:
+    raise ValueError(
+        """This command can be run from the project root folder only.
+        """
+    )
