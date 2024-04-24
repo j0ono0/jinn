@@ -1,6 +1,6 @@
 import argparse
 from pathlib import Path
-
+from jinn import settings
 
 parser = argparse.ArgumentParser(
     description="""Command jinn to generate a static site. 
@@ -9,12 +9,17 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument("src", type=str, help="source file to control build process")
 parser.add_argument(
-    "dst", type=str, help="destination folder for site to be built into."
+    "--build",
+    type=str,
+    help="destination folder for site to be built into. Omitted the project builds into './build'.",
 )
 
 args = parser.parse_args()
 src = Path(args.src)
-dst = Path(args.dst)
+if args.build:
+    dst = Path(args.build)
+else:
+    dst = Path(".").parent / "build"
 
 
 # Validate input ######################################################################
@@ -38,21 +43,22 @@ import importlib
 import sys
 import os
 
+settings.BUILD_PATH = dst.resolve()
 
-here = Path(".")
+# here = Path(".")
 
-if here == src.parent:
-    # in project root
-    modulepath = src.stem
-elif src.resolve().is_relative_to(here.resolve()):
-    # user above above
-    modulepath = ".".join(src.parent.joinpath(src.stem).as_posix().split("/"))
-else:
-    pathup = src.parent.relative_to(Path("."))
-    upcount = len(pathup.as_posix().split("/"))
-    modulepath = f'{'.'*upcount}{src.stem}'
+# if here == src.parent:
+#     # in project root
+#     modulepath = src.stem
+# elif src.resolve().is_relative_to(here.resolve()):
+#     # user above above
+#     modulepath = ".".join(src.parent.joinpath(src.stem).as_posix().split("/"))
+# else:
+#     pathup = src.parent.relative_to(Path("."))
+#     upcount = len(pathup.as_posix().split("/"))
+#     modulepath = f'{'.'*upcount}{src.stem}'
 
-print(modulepath)
+# print(modulepath)
 
 sys.path.append(src.parent.resolve())
 

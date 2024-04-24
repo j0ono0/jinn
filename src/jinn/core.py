@@ -51,7 +51,7 @@ class Generator:
         self.init_jinja_environment()
 
     def init_jinja_environment(self):
-        template_path = Path(settings.PROJ_ROOT) / settings.TEMPLATE_SOURCE
+        template_path = Path(settings.PROJECT_PATH) / settings.TEMPLATE_SOURCE
         if not self.jinja_environment:
             self.jinja_environment = jinja2.Environment(
                 loader=jinja2.ChoiceLoader(
@@ -83,9 +83,11 @@ class Generator:
         Optional destination_path overrides default behaviour.
         """
         destination_path = (
-            destination_path or Path(settings.BUILD_ROOT) / settings.STATIC_DESTINATION
+            destination_path
+            or Path(settings.BUILD_PATH).resolve() / settings.STATIC_DESTINATION
         )
-        template_path = settings.PROJ_ROOT / settings.TEMPLATE_SOURCE
+        destination_path.parent.mkdir(parents=True, exist_ok=True)
+        template_path = Path(settings.PROJECT_PATH) / settings.TEMPLATE_SOURCE
         for dirpath, dirs, files in template_path.walk():
             s = dirpath / "static"
             if s.is_dir():
@@ -98,9 +100,11 @@ class Generator:
         Optional destination_path overrides default behaviour.
         """
         destination_path = (
-            destination_path or Path(settings.BUILD_ROOT) / settings.MEDIA_DESTINATION
+            destination_path
+            or Path(settings.BUILD_PATH).resolve() / settings.MEDIA_DESTINATION
         )
-        content_path = settings.PROJ_ROOT / settings.CONTENT_SOURCE
+        destination_path.parent.mkdir(parents=True, exist_ok=True)
+        content_path = Path(settings.PROJECT_PATH) / settings.CONTENT_SOURCE
         for dirpath, dirs, files in content_path.walk():
             s = dirpath / "media"
             if s.is_dir():
@@ -110,6 +114,7 @@ class Generator:
 
     def build_page(self, page):
         #  used for formatting html_tag.jinja
+        # TODO: move this to the template.
         page["_helpers"] = {
             "void_tags": [
                 "area",
@@ -131,16 +136,17 @@ class Generator:
         try:
             build_path = Path(page["build_directory"]) / page["slug"]
         except KeyError:
-            build_path = Path(settings.BUILD_ROOT) / page["slug"]
+            build_path = Path(settings.BUILD_PATH).resolve() / page["slug"]
 
         if not build_path:
             raise TypeError(
                 """
                 No destination folder has been set for the output of this page.
                 The page dict needs a 'build_directory' attribute -OR- Set a 
-                default BUILD_ROOT in settings by adding:
-                    setting.BUILD_ROOT = "<absolute path to destination folder>"
+                default BUILD_PATH in settings by adding:
+                    setting.BUILD_PATH = "<absolute path to destination folder>"
                 """
             )
+        build_path.parent.mkdir(parents=True, exist_ok=True)
         with open(build_path, "w") as f:
             f.write(page["template"].render(page))
