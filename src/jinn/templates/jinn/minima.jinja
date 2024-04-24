@@ -1,0 +1,18 @@
+{% extends "jinn/base.jinja" %}
+
+{% block head %}
+{{ super() }}
+{% for template, context in head %}
+    {% with ctx=context %}
+    {% include template %}
+    {% endwith %}
+    {% endfor %}
+{% endblock head %}
+
+{% block body %}
+    {% for template, context in body %}
+    {% with ctx=context%}
+    {% include template %}
+    {% endwith %}
+    {% endfor %}
+{% endblock body %}

@@ -1,6 +1,24 @@
 {# A generic hmtl tag #}
+
+{% set _void_tags = [
+                "area",
+                "base",
+                "br",
+                "col",
+                "embed",
+                "hr",
+                "img",
+                "input",
+                "link",
+                "meta",
+                "param",
+                "source",
+                "track",
+                "wbr",
+            ]%}
+
 <{{ ctx.tag }} {% for attr in ctx.attributes %} {{ attr }}="{{ ctx.attributes[attr] }}" {% endfor %}>
-    {% if not ctx.tag in _helpers['void_tags'] %}
+    {% if not ctx.tag in _void_tags %}
     {{ ctx.content }}
 </{{ ctx.tag }}>
 {% endif %}

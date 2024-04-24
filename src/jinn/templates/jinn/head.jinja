@@ -2,15 +2,58 @@
 {% if ctx.document_title %}
 <title>{{ ctx.document_title }}</title>
 {% endif %}
+
 {% if ctx.author %}
 <meta author="author" content="{{ ctx.author }}">
 {% endif %}
+
 {% if ctx.description %}
 <meta description="description" content="{{ ctx.description }}">
 {% endif %}
-{% for href in ctx.stylesheets %}
-<link rel="stylesheet" href="{{ href }}">
-{% endfor %}
-{% for src in ctx.scripts %}
-<script src="{{ href }}"></script?
-{% endfor %}
+
+{# Cater for string and list values #}
+{% if ctx.stylesheet %}
+    {% if ctx.stylesheet is string %}
+            <link rel="stylesheet" href="{{ ctx.stylesheet }}">
+    {% else %}
+        {% for href in ctx.stylesheet %}
+            <link rel="stylesheet" href="{{ href }}">
+        {% endfor %}
+    {% endif %}
+{% endif %}
+
+{# Cater for string and list values #}
+{% if ctx.stylesheets %}
+    {% if ctx.stylesheets is string %}
+            <link rel="stylesheet" href="{{ ctx.stylesheets }}">
+    {% else %}
+        {% for href in ctx.stylesheets %}
+            <link rel="stylesheet" href="{{ href }}">
+        {% endfor %}
+    {% endif %}
+{% endif %}
+
+{# Cater for string and list values #}
+{% if ctx.script %}
+    {% if ctx.script is string %}
+            <script src="{{ ctx.script }}"></script>
+    {% else %}
+        {% for src in ctx.script %}
+            <script src="{{ src }}"></script>
+        {% endfor %}
+    {% endif %}
+{% endif %}
+
+{# Cater for string and list values #}
+{% if ctx.scripts %}
+    {% if ctx.scripts is string %}
+            <script src="{{ ctx.script }}"></script>
+    {% else %}
+        {% for src in ctx.scripts %}
+            <script src="{{ src }}"></script>
+        {% endfor %}
+    {% endif %}
+{% endif %}
+
+
+

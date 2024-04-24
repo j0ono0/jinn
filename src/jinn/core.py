@@ -78,7 +78,15 @@ class Generator:
             else:
                 shutil.copy2(str(s), str(d))
 
-    def build_static_directories(self, destination_path=None):
+    def copy_assets(self):
+        """Copy static and media files with a single command. This convenience
+        function uses destination paths configered in settings.py. For more control
+        static and media directories can be copied independently
+        """
+        self.copy_static_directories()
+        self.copy_media_directories()
+
+    def copy_static_directories(self, destination_path=None):
         """Copy static files from source to build locations.
         Optional destination_path overrides default behaviour.
         """
@@ -95,7 +103,7 @@ class Generator:
                 d = destination_path / rel_path
                 self.copy_directories(s, d)
 
-    def build_media_directories(self, destination_path=None):
+    def copy_media_directories(self, destination_path=None):
         """Copy media files from source to build locations.
         Optional destination_path overrides default behaviour.
         """
@@ -113,30 +121,14 @@ class Generator:
                 self.copy_directories(s, d)
 
     def build_page(self, page):
-        #  used for formatting html_tag.jinja
-        # TODO: move this to the template.
-        page["_helpers"] = {
-            "void_tags": [
-                "area",
-                "base",
-                "br",
-                "col",
-                "embed",
-                "hr",
-                "img",
-                "input",
-                "link",
-                "meta",
-                "param",
-                "source",
-                "track",
-                "wbr",
-            ]
-        }
         try:
-            build_path = Path(page["build_directory"]) / page["slug"]
+            build_path = Path(page["build_directory"]) / page["url"]
         except KeyError:
-            build_path = Path(settings.BUILD_PATH).resolve() / page["slug"]
+            try:
+                build_path = Path(settings.BUILD_PATH).resolve() / page["url"]
+            except KeyError:
+                msg = "'url' is a required dict attribute in data passed to Generator.build_page()."
+                raise KeyError(msg)
 
         if not build_path:
             raise TypeError(
