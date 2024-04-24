@@ -1,7 +1,5 @@
 import argparse
 from pathlib import Path
-import sys
-from jinn import settings, core
 
 
 parser = argparse.ArgumentParser(
@@ -22,28 +20,56 @@ dst = Path(args.dst)
 # Validate input ######################################################################
 
 if not src.is_file():
-    raise argparse.ArgumentError("The source path must be to a file.")
+    raise ValueError(
+        """
+        The source path must be to a file.
+        """
+    )
 
 if dst.is_file():
-    raise argparse.ArgumentError("The destination path must be a folder.")
+    raise ValueError(
+        """
+        The destination path must be a folder.
+        """
+    )
 
-
-# Import user defined Python file #####################################################
-
-import importlib.util
+# Import user defined Python module #####################################################
+import importlib
 import sys
+import os
+
+
+here = Path(".")
+
+if here == src.parent:
+    # in project root
+    modulepath = src.stem
+elif src.resolve().is_relative_to(here.resolve()):
+    # user above above
+    modulepath = ".".join(src.parent.joinpath(src.stem).as_posix().split("/"))
+else:
+    pathup = src.parent.relative_to(Path("."))
+    upcount = len(pathup.as_posix().split("/"))
+    modulepath = f'{'.'*upcount}{src.stem}'
+
+print(modulepath)
+
+sys.path.append(src.parent.resolve())
+
+
+#######################################
+#######################################
+
+# This only works from the project root
+
+#######################################
+#######################################
 
 spec = importlib.util.spec_from_file_location(src.stem, src)
 module = importlib.util.module_from_spec(spec)
 sys.modules[src.stem] = module
-try:
-    spec.loader.exec_module(module)
-except ModuleNotFoundError:
-    raise ModuleNotFoundError(
-        """
-        ------------------------------------------------------------------------------
-        Run this CLI tool from the source directory if you have 'ModuleNotFoundError'.
-        It is due to a Python import limitation. 
-        ------------------------------------------------------------------------------
-        """
-    )
+spec.loader.exec_module(module)
+
+# import from outside user module
+# module = importlib.import_module('site01.site')
+# print(dir(module))

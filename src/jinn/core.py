@@ -54,6 +54,7 @@ class Generator:
                 loader=jinja2.ChoiceLoader(
                     [
                         jinja2.FileSystemLoader(settings.TEMPLATE_PATH),
+                        # jinja2.PackageLoader("site01", "templates"),
                         jinja2.PackageLoader("jinn", "templates"),
                     ]
                 ),
@@ -76,7 +77,7 @@ class Generator:
                 shutil.copy2(str(s), str(d))
 
     def parse_md_file(self, path):
-        path = settings.CONTENT_PATH / path
+        # path = settings.CONTENT_PATH / path
         md = markdown.Markdown(extensions=["meta"])
         with open(path) as f:
             html = {"content": md.convert(f.read())}
