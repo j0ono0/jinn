@@ -2,32 +2,12 @@
 """
 
 import jinja2
-import markdown
+
 import os
 from pathlib import Path
 import shutil
 from . import settings
-
-
-def copy_dir(src, dst):
-
-    dst.mkdir(parents=True, exist_ok=True)
-
-    for item in os.listdir(src):
-        s = src / item
-        d = dst / item
-        if s.is_dir():
-            copy_dir(s, d)
-        else:
-            shutil.copy2(str(s), str(d))
-
-
-def parse_md_file(path):
-    md = markdown.Markdown(extensions=["meta"])
-    with open(path) as f:
-        html = {"content": md.convert(f.read())}
-        meta = {k: ", ".join(v) for (k, v) in md.Meta.items()}
-        return {**html, **meta}
+from . import utilities as util
 
 
 class Generator:
@@ -68,16 +48,6 @@ class Generator:
     def template(self, name):
         return self.jinja_environment.get_template(name)
 
-    def copy_directories(self, src, dst):
-        dst.mkdir(parents=True, exist_ok=True)
-        for item in os.listdir(src):
-            s = src / item
-            d = dst / item
-            if s.is_dir():
-                copy_dir(s, d)
-            else:
-                shutil.copy2(str(s), str(d))
-
     def copy_assets(self):
         """Copy static and media files with a single command. This convenience
         function uses destination paths configered in settings.py. For more control
@@ -101,7 +71,7 @@ class Generator:
             if s.is_dir():
                 rel_path = dirpath.relative_to(template_path)
                 d = destination_path / rel_path
-                self.copy_directories(s, d)
+                util.copy_directory(s, d)
 
     def copy_media_directories(self, destination_path=None):
         """Copy media files from source to build locations.
@@ -118,7 +88,7 @@ class Generator:
             if s.is_dir():
                 rel_path = dirpath.relative_to(content_path)
                 d = destination_path / rel_path
-                self.copy_directories(s, d)
+                util.copy_directory(s, d)
 
     def build_page(self, page):
         try:
