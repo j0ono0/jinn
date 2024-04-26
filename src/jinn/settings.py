@@ -14,3 +14,5 @@ CONTENT_SOURCE = "content"
 BUILD_PATH = "build"
 STATIC_DESTINATION = "assets"
 MEDIA_DESTINATION = "media"
+
+DEFAULT_TEMPLATE_SUFFIX = ".jinja"

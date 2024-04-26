@@ -1,11 +1,8 @@
 """ Central file for control of all aspects of package. 
 """
 
-import jinja2
-
-import os
 from pathlib import Path
-import shutil
+import jinja2
 from . import settings
 from . import utilities as util
 
@@ -46,7 +43,12 @@ class Generator:
             )
 
     def template(self, name):
-        return self.jinja_environment.get_template(name)
+        # Add default template suffix if excluded
+        name = Path(name)
+        if not name.suffix:
+            name = name.with_suffix(settings.DEFAULT_TEMPLATE_SUFFIX)
+
+        return self.jinja_environment.get_template(name.as_posix())
 
     def copy_assets(self):
         """Copy static and media files with a single command. This convenience
