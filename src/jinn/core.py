@@ -50,6 +50,10 @@ class Generator:
 
         return self.jinja_environment.get_template(name.as_posix())
 
+    def tplt(self, name):
+        # Alias for Generator.template()
+        return self.template(name)
+
     def copy_assets(self):
         """Copy static and media files with a single command. This convenience
         function uses destination paths configered in settings.py. For more control
