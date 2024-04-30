@@ -39,7 +39,80 @@ def confirm_metafile_update(metafile):
     return True
 
 
-def collate_markdown_meta(src, dst=None, delimiter=" ", confirm_overwrite=None):
+def collate_file_names(src, dst=None, confirm_overwrite=False):
+
+    # TODO: include subdirectories.
+
+    """Collate file names and (some) file meta found in the 'src' folder. If a destination path
+     is provided, the data is saved to that location in JSON format. If 'dst' is a folder a file
+      name wil be created '<folder name>_file_meta.json. If a pre-existing file
+    is at the destination, data from that file will be updated. Additional data is retained on the
+    assumption it maybe have been added via another source. The repercussion of this is that obselete
+    data is not removed. Eg, deleting a file in the src folder and running collate_file_meta() does
+    *NOT* remove that data from the meta data file."""
+
+    src = Path(src)
+
+    if dst:
+        dst = Path(dst)
+        # Add default dst filename if none provided
+        if dst.is_dir():
+            dst = dst / f"{src.stem}_file_meta.json"
+
+    # Validate src path
+    if not src.exists() or src.is_file():
+        error_msg = "The source path is not valid. It either does not exist or is not a path to a folder."
+        raise ValueError(error_msg)
+
+    # Load and validate existing data #############################################################
+
+    try:
+        with open(dst, "r") as f:
+            metadata = f.read()
+            try:
+                metadata = json.loads(metadata)
+            except json.decoder.JSONDecodeError as e:
+                print(e)
+                print("the destination file exists but is not valid JSON format")
+            if "files" not in metadata:
+                error_msg = "A valid destination file exists but does not include the required 'files' attribute"
+                raise ValueError(error_msg)
+
+    except FileNotFoundError:
+        metadata = {
+            "files": [],
+        }
+
+    # Update existing data with filenames form src folder ###############################
+
+    for filepath in [f for f in src.iterdir()]:
+        if f.is_file():
+            relpath = filepath.relative_to(src)
+            # Update existing entry if it exists or create a new one
+            filemeta = next(
+                (a for a in metadata["files"] if a["src"] == relpath.as_posix()), None
+            )
+            if not filemeta:
+                # Append new entry if not already listed
+                metadata["files"].append({"src": relpath.as_posix()})
+
+    # Save to destination file ####################################################################
+
+    if dst:
+        # Confirm overwrite file is okay
+        if confirm_overwrite == False:
+            confirm_overwrite = confirm_metafile_update(dst)
+
+        if confirm_overwrite:
+            print(metadata)
+            filedata = json.dumps(metadata, indent=4)
+            with open(dst, "w") as f:
+                f.write(filedata)
+
+    return metadata
+
+
+def collate_markdown_meta(src, dst=None, delimiter=" ", confirm_overwrite=False):
     """Collate the meta content from all markdown files found in the 'src' folder.
     If a destination path is provided, the data is saved to that location in JSON format.
     If 'dst' is a folder a file name will be created '<folder name>_meta.json'. If a pre-existing file
@@ -92,7 +165,6 @@ def collate_markdown_meta(src, dst=None, delimiter=" ", confirm_overwrite=None):
 
     except FileNotFoundError:
         metadata = {
-            "modified": None,
             "articles": [],
         }
 
@@ -119,7 +191,7 @@ def collate_markdown_meta(src, dst=None, delimiter=" ", confirm_overwrite=None):
 
     if dst:
         # Confirm overwrite file is okay
-        if confirm_overwrite == None:
+        if confirm_overwrite == False:
             confirm_overwrite = confirm_metafile_update(dst)
 
         if confirm_overwrite:
