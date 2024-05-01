@@ -22,10 +22,11 @@ def parse_md_file(path, delimiter=" "):
     md = markdown.Markdown(extensions=["meta"])
     with open(path) as f:
         html = md.convert(f.read())
-        meta = md.Meta
+        data = md.Meta
     if delimiter:
-        meta = {k: delimiter.join(v) for (k, v) in md.Meta.items()}
-        return {"content": html, "meta": meta}
+        data = {k: delimiter.join(v) for (k, v) in md.Meta.items()}
+    data["content"] = html
+    return data
 
 
 def confirm_metafile_update(metafile):
