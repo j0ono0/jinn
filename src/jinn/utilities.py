@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import re
 import markdown
 
 
@@ -201,3 +202,11 @@ def collate_markdown_meta(src, dst=None, delimiter=" ", confirm_overwrite=False)
                 f.write(filedata)
 
     return metadata
+
+
+def slugify(text):
+    slug = re.sub(r"[\[\](){}]", " ", text)
+    slug = "".join(char if re.match(r"[0-9a-zA-Z_-~]", char) else " " for char in slug)
+    slug = slug.lower().strip()
+    slug = "-".join(re.split(r"[-_ ]+", slug))
+    return slug
