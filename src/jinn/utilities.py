@@ -6,6 +6,7 @@ from pathlib import Path
 import shutil
 import re
 import markdown
+from jinn import settings
 
 
 def copy_directory(src, dst):
@@ -19,15 +20,46 @@ def copy_directory(src, dst):
             shutil.copy2(str(s), str(d))
 
 
-def parse_md_file(path, delimiter=" "):
+def parse_markdown(markdown_content, delimiter=" "):
     md = markdown.Markdown(extensions=["meta"])
-    with open(path) as f:
-        html = md.convert(f.read())
-        data = md.Meta
+    html = md.convert(markdown_content)
+    data = md.Meta
     if delimiter:
         data = {k: delimiter.join(v) for (k, v) in md.Meta.items()}
     data["content"] = html
     return data
+
+
+def parse_md_file(path, delimiter=" "):
+    md = markdown.Markdown(extensions=["meta"])
+    with open(path) as f:
+        markdown_content = f.read()
+    return parse_markdown(markdown_content, delimiter)
+
+
+def append_file(src, dst):
+    src = Path(src)
+    dst = Path(dst)
+    with open(dst, "a") as dstfile:
+        with open(src) as srcfile:
+            dstfile.write(srcfile.read())
+
+
+def collate_css_files(src_list, dst):
+    dst = Path(settings.BUILD_PATH, settings.STATIC_DESTINATION, dst).resolve()
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    # Create file or clear existing data at destination
+    open(dst, "w+").close()
+    # Append src_list into dst
+    for src in src_list:
+        src = Path(src).resolve()
+        # Add css comment to deliniate files appended
+        with open(dst, "a") as f:
+            f.write(f"\n\n/* {src.name} */\n\n")
+        # Append file contents
+        append_file(src, dst)
+
+    print(f"{len(src_list)} css file collated into {dst}")
 
 
 def confirm_metafile_update(metafile):
