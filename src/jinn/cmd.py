@@ -35,7 +35,7 @@ def generate_site(args):
     import sys
     import os
 
-    settings.BUILD_PATH = dst.resolve()
+    settings.BUILD_DESTINATION = dst.resolve()
 
     here = Path(".")
 
@@ -55,6 +55,12 @@ def generate_site(args):
         )
 
 
+def build_with_theme(args):
+    from jinn.themes.simple_site import simple_site
+
+    simple_site.build()
+
+
 def run_dev_server(args):
     PORT = args.port
 
@@ -71,7 +77,7 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument(
     "command",
-    choices=["generate", "rundev"],
+    choices=["generate", "devserver", "build"],
     help="The first argument must be a valid command.",
 )
 
@@ -79,7 +85,7 @@ parser.add_argument(
     "-s",
     "--src",
     type=str,
-    help="Source .py file to control generator processes.",
+    help="Source .py file to control generator processes, or source folder if using 'build' command",
 )
 parser.add_argument(
     "-d",
@@ -97,11 +103,20 @@ parser.add_argument(
     help="Port to run development server on.",
 )
 
+parser.add_argument(
+    "-t",
+    "--theme",
+    type=str,
+    choices=["simple_site", "simple"],
+    help="Use a theme builder",
+)
+
 args = parser.parse_args()
 
 commands = {
     "generate": generate_site,
-    "rundev": run_dev_server,
+    "devserver": run_dev_server,
+    "build": build_with_theme,
 }
 
 commands[args.command.lower()](args)

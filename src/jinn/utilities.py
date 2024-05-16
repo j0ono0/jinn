@@ -46,7 +46,7 @@ def append_file(src, dst):
 
 
 def collate_css_files(src_list, dst):
-    dst = Path(settings.BUILD_PATH, settings.STATIC_DESTINATION, dst).resolve()
+    dst = Path(settings.BUILD_DESTINATION, settings.STATIC_DESTINATION, dst).resolve()
     dst.parent.mkdir(parents=True, exist_ok=True)
     # Create file or clear existing data at destination
     open(dst, "w+").close()

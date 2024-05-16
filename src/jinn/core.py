@@ -27,6 +27,14 @@ class Generator:
 
         self.init_jinja_environment()
 
+    @property
+    def content_source(self):
+        return Path(settings.PROJECT_PATH, settings.CONTENT_SOURCE).resolve()
+
+    @property
+    def build_destination(self):
+        return Path(settings.PROJECT_PATH, settings.BUILD_DESTINATION).resolve()
+
     def init_jinja_environment(self):
         template_path = Path(settings.PROJECT_PATH) / settings.TEMPLATE_SOURCE
         if not self.jinja_environment:
@@ -35,6 +43,7 @@ class Generator:
                     [
                         jinja2.FileSystemLoader(template_path),
                         jinja2.PackageLoader("jinn", "templates"),
+                        jinja2.PackageLoader("jinn", "themes"),
                     ]
                 ),
                 autoescape=jinja2.select_autoescape(),
@@ -68,7 +77,7 @@ class Generator:
         """
         destination_path = (
             destination_path
-            or Path(settings.BUILD_PATH).resolve() / settings.STATIC_DESTINATION
+            or Path(settings.BUILD_DESTINATION).resolve() / settings.STATIC_DESTINATION
         )
         destination_path.parent.mkdir(parents=True, exist_ok=True)
         template_path = Path(settings.PROJECT_PATH) / settings.TEMPLATE_SOURCE
@@ -85,7 +94,7 @@ class Generator:
         """
         destination_path = (
             destination_path
-            or Path(settings.BUILD_PATH).resolve() / settings.MEDIA_DESTINATION
+            or Path(settings.BUILD_DESTINATION).resolve() / settings.MEDIA_DESTINATION
         )
         destination_path.parent.mkdir(parents=True, exist_ok=True)
         content_path = Path(settings.PROJECT_PATH) / settings.CONTENT_SOURCE
@@ -101,7 +110,7 @@ class Generator:
             build_path = Path(page["build_directory"]) / page["url"]
         except KeyError:
             try:
-                build_path = Path(settings.BUILD_PATH).resolve() / page["url"]
+                build_path = Path(settings.BUILD_DESTINATION).resolve() / page["url"]
             except KeyError:
                 msg = "'url' is a required dict attribute in data passed to Generator.build_page()."
                 raise KeyError(msg)
@@ -111,8 +120,8 @@ class Generator:
                 """
                 No destination folder has been set for the output of this page.
                 The page dict needs a 'build_directory' attribute -OR- Set a 
-                default BUILD_PATH in settings by adding:
-                    setting.BUILD_PATH = "<absolute path to destination folder>"
+                default BUILD_DESTINATION in settings by adding:
+                    setting.BUILD_DESTINATION = "<absolute path to destination folder>"
                 """
             )
         build_path.parent.mkdir(parents=True, exist_ok=True)

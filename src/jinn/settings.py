@@ -10,8 +10,8 @@ CONTENT_SOURCE = "content"
 
 # Destination folders.
 # Static and media folders are concatenated with
-# BUILD_PATH to create an output files destination where explicit paths are not supplied.
-BUILD_PATH = "build"
+# BUILD_DESTINATION to create an output files destination where explicit paths are not supplied.
+BUILD_DESTINATION = "build"
 STATIC_DESTINATION = "assets"
 MEDIA_DESTINATION = "media"
 
